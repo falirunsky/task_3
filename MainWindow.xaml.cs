@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using task_3.Creators;
+using task_3.Factories;
 using task_3.Shapes;
 
 namespace task_3
@@ -25,51 +24,42 @@ namespace task_3
         {
             canvas.Children.Clear();
 
-            Brush brush = GetSelectedBrush();
-            List<ShapeCreator> creators = GetSelectedCreators();
+            IShapeFactory factory = CreateFactory();
 
             double x = 20;
 
-            foreach (var creator in creators)
-            {
-                IShape shape = creator.CreateShape(brush);
-                shape.Draw(canvas);
+            if (CircleCheckBox.IsChecked == true)
+                Draw(factory.CreateCircle(), ref x);
 
-                UIElement element = canvas.Children[^1];
-                Canvas.SetLeft(element, x);
-                Canvas.SetTop(element, 40);
+            if (SquareCheckBox.IsChecked == true)
+                Draw(factory.CreateSquare(), ref x);
 
-                x += 120;
-            }
+            if (TriangleCheckBox.IsChecked == true)
+                Draw(factory.CreateTriangle(), ref x);
         }
 
-        private Brush GetSelectedBrush()
+        private void Draw(IShape shape, ref double x)
+        {
+            shape.Draw(canvas);
+
+            var element = canvas.Children[^1];
+            Canvas.SetLeft(element, x);
+            Canvas.SetTop(element, 40);
+
+            x += 120;
+        }
+
+        private IShapeFactory CreateFactory()
         {
             string color =
                 ((ComboBoxItem)ColorComboBox.SelectedItem)?.Content?.ToString();
 
             return color switch
             {
-                "Blue" => Brushes.Blue,
-                "Green" => Brushes.Green,
-                _ => Brushes.Red
+                "Blue" => new BlueShapeFactory(),
+                "Green" => new GreenShapeFactory(),
+                _ => new RedShapeFactory()
             };
-        }
-
-        private List<ShapeCreator> GetSelectedCreators()
-        {
-            var creators = new List<ShapeCreator>();
-
-            if (CircleCheckBox.IsChecked == true)
-                creators.Add(new CircleCreator());
-
-            if (SquareCheckBox.IsChecked == true)
-                creators.Add(new SquareCreator());
-
-            if (TriangleCheckBox.IsChecked == true)
-                creators.Add(new TriangleCreator());
-
-            return creators;
         }
     }
 }
